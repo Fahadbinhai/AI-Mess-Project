@@ -58,7 +58,7 @@ export async function PATCH(request, { params }) {
   }
 }
 
-// DELETE - delete group (System Admin only)
+// DELETE - delete group (System Admin or Group Admin only)
 export async function DELETE(request, { params }) {
   try {
     await connectDB();
@@ -66,11 +66,25 @@ export async function DELETE(request, { params }) {
     const { searchParams } = new URL(request.url);
     const requesterId = searchParams.get('requesterId');
 
-    if (requesterId) {
-      const requester = await User.findById(requesterId);
-      if (!requester || requester.role !== 'admin') {
-        return Response.json({ error: 'Access Denied: Only system admins can delete groups.' }, { status: 403 });
-      }
+    if (!requesterId) {
+      return Response.json({ error: 'Access Denied: Requester ID is required.' }, { status: 400 });
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return Response.json({ error: 'Group not found' }, { status: 404 });
+    }
+
+    const requester = await User.findById(requesterId);
+    if (!requester) {
+      return Response.json({ error: 'Access Denied: Requester not found.' }, { status: 404 });
+    }
+
+    const isSystemAdmin = requester.role === 'admin';
+    const isGroupLeader = group.leader.toString() === requesterId;
+
+    if (!isSystemAdmin && !isGroupLeader) {
+      return Response.json({ error: 'Access Denied: You do not have permission to delete this group.' }, { status: 403 });
     }
 
     // Delete associated monthly sheets and expense entries first

@@ -50,7 +50,10 @@ body {
 }
 
 /* ---- TYPOGRAPHY ---- */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #ffffff;
@@ -273,7 +276,7 @@ a {
 .btn-secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
-  border-color: rgba(255,255,255,0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .btn-success {
@@ -502,7 +505,7 @@ select.form-control {
 
 .custom-table td {
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   white-space: nowrap;
 }
@@ -598,8 +601,15 @@ select.form-control {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* ---- GRID LAYOUTS ---- */
@@ -715,6 +725,7 @@ select.form-control {
 
 /* ---- TABLET & MOBILE (≤ 767px) ---- */
 @media (max-width: 767px) {
+
   /* Navbar */
   .navbar {
     padding: 0 1rem;
@@ -970,6 +981,7 @@ select.form-control {
 
 /* ---- SMALL PHONES (≤ 480px) ---- */
 @media (max-width: 480px) {
+
   /* Even smaller containers */
   .page-container,
   .page-container-sm,

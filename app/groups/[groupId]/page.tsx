@@ -188,7 +188,7 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
               + Monthly Sheet
             </Link>
           )}
-          {isAdmin && (
+          {(isAdmin || isLeader) && (
             <button
               onClick={handleDeleteGroup}
               disabled={deletingGroup}

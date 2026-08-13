@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
-const COLORS = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#a855f7'];
+const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#a855f7'];
 
 const EXPENSE_FIELDS = [
   { key: 'houseRent', label: 'House Rent' },
@@ -56,6 +56,67 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
   const [formIsPaid, setFormIsPaid] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState('');
+
+  // Inline edit states
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Record<string, string>>({
+    houseRent: '0', currentBill: '0', gasBill: '0', wifiBill: '0',
+    dustBill: '0', maidBill: '0', othersExpenses: '0', bazarBudget: '0', due: '0'
+  });
+  const [editIsPaid, setEditIsPaid] = useState(false);
+  const [savingInline, setSavingInline] = useState(false);
+
+  const handleStartEdit = (entry: ExpenseEntry) => {
+    setEditingId(entry._id);
+    setEditValues({
+      houseRent: entry.houseRent.toString(),
+      currentBill: entry.currentBill.toString(),
+      gasBill: entry.gasBill.toString(),
+      wifiBill: entry.wifiBill.toString(),
+      dustBill: entry.dustBill.toString(),
+      maidBill: entry.maidBill.toString(),
+      othersExpenses: entry.othersExpenses.toString(),
+      bazarBudget: entry.bazarBudget.toString(),
+      due: entry.due.toString(),
+    });
+    setEditIsPaid(entry.isPaid || false);
+  };
+
+  const handleEditChange = (key: string, value: string) => {
+    setEditValues(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveInline = async (entry: ExpenseEntry) => {
+    setSavingInline(true);
+    setError('');
+    setSaveSuccess('');
+    try {
+      const body: any = {
+        sheetId,
+        userId: entry.userId._id,
+        isPaid: editIsPaid,
+      };
+      EXPENSE_FIELDS.forEach(f => {
+        body[f.key] = parseFloat(editValues[f.key]) || 0;
+      });
+      body.due = parseFloat(editValues.due) || 0;
+
+      const res = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save inline expenses');
+      setSaveSuccess('Expenses updated successfully!');
+      await loadData();
+      setEditingId(null);
+    } catch (err: any) {
+      setError(err.message || 'Save failed');
+    } finally {
+      setSavingInline(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !currentUser) router.push('/login');
@@ -190,14 +251,14 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
     due: acc.due + e.due,
     totalWithoutDue: acc.totalWithoutDue + e.totalWithoutDue,
     totalWithDue: acc.totalWithDue + e.totalWithDue,
-  }), { houseRent:0, currentBill:0, gasBill:0, wifiBill:0, dustBill:0, maidBill:0, othersExpenses:0, bazarBudget:0, due:0, totalWithoutDue:0, totalWithDue:0 });
+  }), { houseRent: 0, currentBill: 0, gasBill: 0, wifiBill: 0, dustBill: 0, maidBill: 0, othersExpenses: 0, bazarBudget: 0, due: 0, totalWithoutDue: 0, totalWithDue: 0 });
 
   const chartData = EXPENSE_FIELDS
     .map(f => ({ name: f.label, value: (totals as any)[f.key] }))
     .filter(d => d.value > 0);
 
   return (
-    <div className="page-container" style={{ maxWidth: '1400px' }}>
+    <div className="page-container" style={{ maxWidth: '1600px' }}>
       {/* Header */}
       <div className="page-header">
         <div className="page-header-text">
@@ -353,12 +414,13 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
                 <th style={{ color: '#c4b5fd' }}>Total (No Due)</th>
                 <th style={{ color: '#a78bfa' }}>Total (W/ Due)</th>
                 <th>Status</th>
+                {canInputExpenses && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {entries.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="text-center py-10 text-zinc-500 italic">
+                  <td colSpan={canInputExpenses ? 14 : 13} className="text-center py-10 text-zinc-500 italic">
                     No expense data entered yet.
                     {canInputExpenses && (
                       <button onClick={() => setShowForm(true)} className="ml-2 text-purple-400 hover:text-purple-300 underline bg-transparent border-none cursor-pointer font-medium">
@@ -369,40 +431,229 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
                 </tr>
               ) : (
                 <>
-                  {entries.map(entry => (
-                    <tr key={entry._id}>
-                      <td>
-                        <div className="font-semibold text-white">{entry.userId?.name}</div>
-                        <div className="text-xs font-mono text-zinc-500">#{entry.userId?.userId}</div>
-                      </td>
-                      <td>৳{entry.houseRent.toLocaleString()}</td>
-                      <td>৳{entry.currentBill.toLocaleString()}</td>
-                      <td>৳{entry.gasBill.toLocaleString()}</td>
-                      <td>৳{entry.wifiBill.toLocaleString()}</td>
-                      <td>৳{entry.dustBill.toLocaleString()}</td>
-                      <td>৳{entry.maidBill.toLocaleString()}</td>
-                      <td>৳{entry.othersExpenses.toLocaleString()}</td>
-                      <td>৳{entry.bazarBudget.toLocaleString()}</td>
-                      <td className="due-column font-semibold">৳{entry.due.toLocaleString()}</td>
-                      <td style={{ color: '#c4b5fd', fontWeight: 700 }}>৳{entry.totalWithoutDue.toLocaleString()}</td>
-                      <td style={{ color: '#a78bfa', fontWeight: 700 }}>৳{entry.totalWithDue.toLocaleString()}</td>
-                      <td>
-                        {canInputExpenses ? (
-                          <button
-                            onClick={() => handleTogglePaidStatus(entry)}
-                            className={`btn btn-sm ${entry.isPaid ? 'btn-success' : 'btn-danger'}`}
-                            style={{ minWidth: '70px', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
-                          >
-                            {entry.isPaid ? 'Paid' : 'Unpaid'}
-                          </button>
-                        ) : (
-                          <span className={`badge ${entry.isPaid ? 'badge-user' : 'badge-admin'}`} style={{ minWidth: '60px', textAlign: 'center' }}>
-                            {entry.isPaid ? 'Paid' : 'Unpaid'}
-                          </span>
+                  {entries.map(entry => {
+                    const isEditing = editingId === entry._id;
+                    const computedTotalWithoutDue = isEditing
+                      ? (parseFloat(editValues.houseRent) || 0) +
+                      (parseFloat(editValues.currentBill) || 0) +
+                      (parseFloat(editValues.gasBill) || 0) +
+                      (parseFloat(editValues.wifiBill) || 0) +
+                      (parseFloat(editValues.dustBill) || 0) +
+                      (parseFloat(editValues.maidBill) || 0) +
+                      (parseFloat(editValues.othersExpenses) || 0) +
+                      (parseFloat(editValues.bazarBudget) || 0)
+                      : entry.totalWithoutDue;
+
+                    const computedTotalWithDue = isEditing
+                      ? computedTotalWithoutDue + (parseFloat(editValues.due) || 0)
+                      : entry.totalWithDue;
+
+                    return (
+                      <tr key={entry._id}>
+                        <td>
+                          <div className="font-semibold text-white">{entry.userId?.name}</div>
+                          <div className="text-xs font-mono text-zinc-500">#{entry.userId?.userId}</div>
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.houseRent}
+                              onChange={e => handleEditChange('houseRent', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.houseRent.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.currentBill}
+                              onChange={e => handleEditChange('currentBill', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.currentBill.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.gasBill}
+                              onChange={e => handleEditChange('gasBill', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.gasBill.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.wifiBill}
+                              onChange={e => handleEditChange('wifiBill', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.wifiBill.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.dustBill}
+                              onChange={e => handleEditChange('dustBill', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.dustBill.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.maidBill}
+                              onChange={e => handleEditChange('maidBill', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.maidBill.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.othersExpenses}
+                              onChange={e => handleEditChange('othersExpenses', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.othersExpenses.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.bazarBudget}
+                              onChange={e => handleEditChange('bazarBudget', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            `৳${entry.bazarBudget.toLocaleString()}`
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={editValues.due}
+                              onChange={e => handleEditChange('due', e.target.value)}
+                              className="form-control"
+                              style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#09090b', border: '1px solid rgba(245, 158, 11, 0.4)', borderRadius: '6px' }}
+                            />
+                          ) : (
+                            <span className="due-column font-semibold">৳{entry.due.toLocaleString()}</span>
+                          )}
+                        </td>
+                        <td style={{ color: '#c4b5fd', fontWeight: 700 }}>৳{computedTotalWithoutDue.toLocaleString()}</td>
+                        <td style={{ color: '#a78bfa', fontWeight: 700 }}>৳{computedTotalWithDue.toLocaleString()}</td>
+                        <td>
+                          {isEditing ? (
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <input
+                                type="checkbox"
+                                id={`editIsPaid-${entry._id}`}
+                                checked={editIsPaid}
+                                onChange={e => setEditIsPaid(e.target.checked)}
+                                className="h-4 w-4 rounded border-zinc-700 bg-zinc-950 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                              />
+                              <label htmlFor={`editIsPaid-${entry._id}`} className="text-[10px] font-semibold text-zinc-300 cursor-pointer select-none">
+                                Paid
+                              </label>
+                            </div>
+                          ) : (
+                            <span className={`badge ${entry.isPaid ? 'badge-user' : 'badge-admin'}`} style={{ minWidth: '60px', textAlign: 'center' }}>
+                              {entry.isPaid ? 'Paid' : 'Unpaid'}
+                            </span>
+                          )}
+                        </td>
+                        {canInputExpenses && (
+                          <td>
+                            {isEditing ? (
+                              <div className="flex gap-1 justify-center">
+                                <button
+                                  onClick={() => handleSaveInline(entry)}
+                                  disabled={savingInline}
+                                  className="btn btn-sm btn-primary"
+                                  style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', minWidth: '45px' }}
+                                >
+                                  {savingInline ? '...' : 'Save'}
+                                </button>
+                                <button
+                                  onClick={() => setEditingId(null)}
+                                  className="btn btn-sm btn-secondary"
+                                  style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', minWidth: '45px' }}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-1 justify-center">
+                                <button
+                                  onClick={() => handleStartEdit(entry)}
+                                  className="btn btn-sm btn-secondary"
+                                  style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '3px' }}
+                                >
+                                  ✏️ Edit
+                                </button>
+                                <button
+                                  onClick={() => handleTogglePaidStatus(entry)}
+                                  className={`btn btn-sm ${entry.isPaid ? 'btn-success' : 'btn-danger'}`}
+                                  style={{ minWidth: '60px', padding: '0.2rem 0.4rem', fontSize: '0.7rem' }}
+                                >
+                                  {entry.isPaid ? 'Paid' : 'Unpaid'}
+                                </button>
+                              </div>
+                            )}
+                          </td>
                         )}
-                      </td>
-                    </tr>
-                  ))}
+                      </tr>
+                    );
+                  })}
                   <tr className="highlight-row">
                     <td>TOTAL</td>
                     <td>৳{totals.houseRent.toLocaleString()}</td>
@@ -417,6 +668,7 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
                     <td style={{ color: '#ddd6fe', fontWeight: 800 }}>৳{totals.totalWithoutDue.toLocaleString()}</td>
                     <td style={{ color: '#ffffff', fontWeight: 800 }}>৳{totals.totalWithDue.toLocaleString()}</td>
                     <td>—</td>
+                    {canInputExpenses && <td>—</td>}
                   </tr>
                 </>
               )}
