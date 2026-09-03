@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 export default function Dashboard() {
   const { currentUser, loading } = useAuth() as any;
@@ -20,7 +21,7 @@ export default function Dashboard() {
     if (!currentUser) return;
     async function loadGroups() {
       try {
-        const res = await fetch(`/api/groups?userId=${currentUser._id}`);
+        const res = await fetchWithRetry(`/api/groups?userId=${currentUser._id}`);
         if (!res.ok) throw new Error('Failed to load groups');
         const data = await res.json();
         setGroups(data);

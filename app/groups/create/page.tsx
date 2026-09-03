@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 interface User {
   _id: string;
@@ -34,7 +35,7 @@ export default function CreateGroup() {
   // Load all users
   const loadUsers = async (query = '') => {
     try {
-      const res = await fetch(`/api/users?search=${encodeURIComponent(query)}`);
+      const res = await fetchWithRetry(`/api/users?search=${encodeURIComponent(query)}`);
       if (!res.ok) {
         throw new Error('Failed to load members directory');
       }

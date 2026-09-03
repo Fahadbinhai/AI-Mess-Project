@@ -14,7 +14,8 @@ export async function GET(request) {
 
     const entries = await ExpenseEntry.find({ sheetId })
       .populate('userId', '-password')
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .lean();
 
     return Response.json(entries, { status: 200 });
   } catch (error) {
@@ -67,7 +68,7 @@ export async function POST(request) {
 
     // Save will trigger the pre('save') hook to calculate computed totals
     const savedEntry = await entry.save();
-    const populated = await ExpenseEntry.findById(savedEntry._id).populate('userId', '-password');
+    const populated = await ExpenseEntry.findById(savedEntry._id).populate('userId', '-password').lean();
 
     return Response.json(populated, { status: 200 });
   } catch (error) {

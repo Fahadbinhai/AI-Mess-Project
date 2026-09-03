@@ -13,7 +13,8 @@ export async function GET(request) {
     }
 
     const sheets = await MonthlySheet.find({ groupId })
-      .sort({ year: -1, month: -1, createdAt: -1 });
+      .sort({ year: -1, month: -1, createdAt: -1 })
+      .lean();
 
     return Response.json(sheets, { status: 200 });
   } catch (error) {
@@ -33,7 +34,7 @@ export async function POST(request) {
     }
 
     // Check if a sheet for this month/year already exists in this group
-    const existing = await MonthlySheet.findOne({ groupId, month, year });
+    const existing = await MonthlySheet.findOne({ groupId, month, year }).lean();
     if (existing) {
       return Response.json({ error: `A sheet for ${month} ${year} already exists in this group` }, { status: 400 });
     }

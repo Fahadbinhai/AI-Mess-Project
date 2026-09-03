@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 export default function AdminPanel() {
   const { currentUser, loading, refreshUser } = useAuth() as any;
@@ -24,7 +25,7 @@ export default function AdminPanel() {
   const loadUsers = async (query = '') => {
     setFetching(true);
     try {
-      const res = await fetch(`/api/users?search=${encodeURIComponent(query)}`);
+      const res = await fetchWithRetry(`/api/users?search=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(data);

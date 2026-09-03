@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 export default function CreateSheet({ params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = use(params);
@@ -30,7 +31,7 @@ export default function CreateSheet({ params }: { params: Promise<{ groupId: str
     setError('');
     setSubmitting(true);
     try {
-      const res = await fetch('/api/sheets', {
+      const res = await fetchWithRetry('/api/sheets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groupId, month, year: parseInt(year), openingDate }),

@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
         { path: 'members', select: '-password' },
         { path: 'leader', select: '-password' }
       ]
-    });
+    }).lean();
 
     if (!sheet) {
       return Response.json({ error: 'Sheet not found' }, { status: 404 });

@@ -43,5 +43,7 @@ ExpenseEntrySchema.pre('save', async function () {
 
 // A user can only have one expense entry per monthly sheet
 ExpenseEntrySchema.index({ sheetId: 1, userId: 1 }, { unique: true });
+ExpenseEntrySchema.index({ sheetId: 1 });
 
 export default mongoose.models.ExpenseEntry || mongoose.model('ExpenseEntry', ExpenseEntrySchema);
+

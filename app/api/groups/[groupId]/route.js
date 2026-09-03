@@ -12,7 +12,8 @@ export async function GET(request, { params }) {
 
     const group = await Group.findById(groupId)
       .populate('members', '-password')
-      .populate('leader', '-password');
+      .populate('leader', '-password')
+      .lean();
 
     if (!group) {
       return Response.json({ error: 'Group not found' }, { status: 404 });
@@ -49,7 +50,8 @@ export async function PATCH(request, { params }) {
 
     const populatedGroup = await Group.findById(groupId)
       .populate('members', '-password')
-      .populate('leader', '-password');
+      .populate('leader', '-password')
+      .lean();
 
     return Response.json(populatedGroup, { status: 200 });
   } catch (error) {

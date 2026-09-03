@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 const COLORS = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#a855f7'];
 
@@ -33,9 +34,9 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
     try {
       setFetching(true);
       const [gRes, sRes, sumRes] = await Promise.all([
-        fetch(`/api/groups/${groupId}`),
-        fetch(`/api/sheets?groupId=${groupId}`),
-        fetch(`/api/groups/${groupId}/expenses-summary`),
+        fetchWithRetry(`/api/groups/${groupId}`),
+        fetchWithRetry(`/api/sheets?groupId=${groupId}`),
+        fetchWithRetry(`/api/groups/${groupId}/expenses-summary`),
       ]);
       if (!gRes.ok) throw new Error('Failed to load group details');
       setGroup(await gRes.json());
@@ -62,7 +63,7 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
     }
     setSearching(true);
     try {
-      const res = await fetch(`/api/users?search=${encodeURIComponent(query)}`);
+      const res = await fetchWithRetry(`/api/users?search=${encodeURIComponent(query)}`);
       if (res.ok) {
         const data = await res.json();
         // Filter out users already in the group

@@ -17,7 +17,7 @@ export async function GET(request) {
       ];
     }
 
-    const users = await User.find(filter).select('-password').sort({ name: 1 });
+    const users = await User.find(filter).select('-password').sort({ name: 1 }).lean();
     return Response.json(users, { status: 200 });
   } catch (error) {
     console.error('Fetch users error:', error);
@@ -43,7 +43,7 @@ export async function PATCH(request) {
       userId,
       { role },
       { new: true }
-    ).select('-password');
+    ).select('-password').lean();
 
     if (!updatedUser) {
       return Response.json({ error: 'User not found' }, { status: 404 });

@@ -17,7 +17,8 @@ export async function GET(request) {
     const groups = await Group.find(filter)
       .populate('members', '-password')
       .populate('leader', '-password')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     return Response.json(groups, { status: 200 });
   } catch (error) {
@@ -47,7 +48,8 @@ export async function POST(request) {
 
     const populatedGroup = await Group.findById(newGroup._id)
       .populate('members', '-password')
-      .populate('leader', '-password');
+      .populate('leader', '-password')
+      .lean();
 
     return Response.json(populatedGroup, { status: 201 });
   } catch (error) {

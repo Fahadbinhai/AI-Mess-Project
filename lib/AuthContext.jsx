@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchWithRetry } from './apiClient';
 
 const AuthContext = createContext(null);
 
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetchWithRetry('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -41,7 +42,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (name, email, password) => {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetchWithRetry('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
@@ -67,7 +68,7 @@ export function AuthProvider({ children }) {
   const refreshUser = async () => {
     if (!currentUser) return;
     try {
-      const res = await fetch(`/api/users?search=${encodeURIComponent(currentUser.email)}`);
+      const res = await fetchWithRetry(`/api/users?search=${encodeURIComponent(currentUser.email)}`);
       if (res.ok) {
         const users = await res.json();
         const found = users.find(u => u.email === currentUser.email);

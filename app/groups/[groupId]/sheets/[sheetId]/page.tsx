@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#a855f7'];
 
@@ -101,7 +102,7 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
       });
       body.due = parseFloat(editValues.due) || 0;
 
-      const res = await fetch('/api/expenses', {
+      const res = await fetchWithRetry('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -126,8 +127,8 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
     try {
       setFetching(true);
       const [sRes, eRes] = await Promise.all([
-        fetch(`/api/sheets/${sheetId}`),
-        fetch(`/api/expenses?sheetId=${sheetId}`),
+        fetchWithRetry(`/api/sheets/${sheetId}`),
+        fetchWithRetry(`/api/expenses?sheetId=${sheetId}`),
       ]);
       if (!sRes.ok) throw new Error('Failed to load sheet details');
       setSheet(await sRes.json());
