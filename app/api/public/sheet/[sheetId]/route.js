@@ -2,11 +2,16 @@ import connectDB from '@/lib/db';
 import MonthlySheet from '@/models/MonthlySheet';
 import ExpenseEntry from '@/models/ExpenseEntry';
 import Group from '@/models/Group';
+import mongoose from 'mongoose';
 
 export async function GET(request, { params }) {
   try {
     await connectDB();
     const { sheetId } = await params;
+
+    if (!sheetId || !mongoose.Types.ObjectId.isValid(sheetId)) {
+      return Response.json({ error: 'Sheet not found' }, { status: 404 });
+    }
 
     const sheet = await MonthlySheet.findById(sheetId).populate({
       path: 'groupId',
