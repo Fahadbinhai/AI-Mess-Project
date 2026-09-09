@@ -32,7 +32,7 @@ export async function PATCH(request, { params }) {
     await connectDB();
     const { groupId } = await params;
     const body = await request.json();
-    const { name, memberIds } = body;
+    const { name, memberIds, allowPreviousMonthsViewer } = body;
 
     const group = await Group.findById(groupId);
     if (!group) {
@@ -44,6 +44,9 @@ export async function PATCH(request, { params }) {
     }
     if (memberIds !== undefined) {
       group.members = memberIds;
+    }
+    if (allowPreviousMonthsViewer !== undefined) {
+      group.allowPreviousMonthsViewer = Boolean(allowPreviousMonthsViewer);
     }
 
     await group.save();

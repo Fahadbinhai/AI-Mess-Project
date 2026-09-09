@@ -16,7 +16,7 @@ export default function CreateSheet({ params }: { params: Promise<{ groupId: str
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   // Only admin and group leaders can create sheets
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function CreateSheet({ params }: { params: Promise<{ groupId: str
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create sheet');
-      router.push(`/groups/${groupId}`);
+      router.push(`/groups/${groupId}/sheets/${data._id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create monthly sheet');
     } finally {

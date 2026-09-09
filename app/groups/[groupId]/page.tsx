@@ -20,11 +20,12 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
 
-  // Member Management States
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [deletingGroup, setDeletingGroup] = useState(false);
+  const [updatingPermission, setUpdatingPermission] = useState(false);
+  const [copiedSheetId, setCopiedSheetId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !currentUser) router.push('/login');
@@ -133,6 +134,33 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
     }
   };
 
+  const handleTogglePermission = async (newValue: boolean) => {
+    setUpdatingPermission(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowPreviousMonthsViewer: newValue }),
+      });
+      if (!res.ok) throw new Error('Failed to update viewer permission');
+      const updated = await res.json();
+      setGroup(updated);
+    } catch (err: any) {
+      alert(err.message || 'Error updating permission');
+    } finally {
+      setUpdatingPermission(false);
+    }
+  };
+
+  const handleCopyViewerLink = (e: React.MouseEvent, sheetId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/view/${sheetId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedSheetId(sheetId);
+    setTimeout(() => setCopiedSheetId(null), 2000);
+  };
+
   if (loading || !currentUser || fetching) {
     return <div className="loading-screen"><p className="loading-text">Loading group dashboard...</p></div>;
   }
@@ -222,6 +250,40 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
         </div>
       )}
 
+      {/* Admin Settings & Public Permission Toggle */}
+      {canManage && (
+        <div className="glass-panel mb-6 p-4 border-l-4 border-purple-500">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base font-bold text-white">🌐 Public Sheet Viewer Settings</span>
+                <span className="badge badge-primary text-[10px]">Admin Control</span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Allow visitors opening any monthly sheet link to also view previous months' details without logging in.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold text-zinc-300">
+                {group.allowPreviousMonthsViewer ? 'Enabled (Show Previous Months)' : 'Disabled (Only Current Month)'}
+              </span>
+              <button
+                onClick={() => handleTogglePermission(!group.allowPreviousMonthsViewer)}
+                disabled={updatingPermission}
+                className={`btn btn-sm ${group.allowPreviousMonthsViewer ? 'btn-primary' : 'btn-secondary'}`}
+                style={{
+                  minWidth: '100px',
+                  backgroundColor: group.allowPreviousMonthsViewer ? '#10b981' : '#3f3f46',
+                  borderColor: group.allowPreviousMonthsViewer ? '#10b981' : '#3f3f46',
+                }}
+              >
+                {updatingPermission ? 'Updating...' : group.allowPreviousMonthsViewer ? 'ON' : 'OFF'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main layout */}
       <div className="two-col-grid">
         {/* Left column */}
@@ -242,15 +304,33 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
                 )}
               </div>
             ) : (
-              <div className="three-col-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {sheets.map(sheet => (
-                  <Link key={sheet._id} href={`/groups/${groupId}/sheets/${sheet._id}`} className="sheet-card">
-                    <div className="font-bold text-white text-sm">{sheet.month} {sheet.year}</div>
-                    <div className="text-xs text-zinc-500 mt-1">
-                      Opened: {new Date(sheet.openingDate).toLocaleDateString()}
+                  <div key={sheet._id} className="glass-panel p-4 flex flex-col justify-between hover:border-purple-500/50 transition-colors">
+                    <div>
+                      <div className="font-bold text-white text-sm">{sheet.month} {sheet.year}</div>
+                      <div className="text-xs text-zinc-500 mt-1">
+                        Opened: {new Date(sheet.openingDate).toLocaleDateString()}
+                      </div>
                     </div>
-                    <div className="text-xs text-purple-400 mt-2 font-medium">View details →</div>
-                  </Link>
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-zinc-800 gap-2">
+                      <Link href={`/groups/${groupId}/sheets/${sheet._id}`} className="text-xs text-purple-400 font-medium hover:underline">
+                        View details →
+                      </Link>
+                      <button
+                        onClick={(e) => handleCopyViewerLink(e, sheet._id)}
+                        className="btn btn-sm text-[11px] py-1 px-2.5 font-semibold"
+                        style={{
+                          backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                          borderColor: 'rgba(139, 92, 246, 0.4)',
+                          color: '#c4b5fd'
+                        }}
+                        title="Copy public view link"
+                      >
+                        {copiedSheetId === sheet._id ? '✓ Copied' : '🔗 View link'}
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

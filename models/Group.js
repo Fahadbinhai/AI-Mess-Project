@@ -14,6 +14,10 @@ const GroupSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  allowPreviousMonthsViewer: {
+    type: Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
 GroupSchema.index({ members: 1 });

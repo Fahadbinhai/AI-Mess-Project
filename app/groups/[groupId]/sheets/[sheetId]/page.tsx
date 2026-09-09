@@ -46,6 +46,8 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
   const [entries, setEntries] = useState<ExpenseEntry[]>([]);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [updatingPermission, setUpdatingPermission] = useState(false);
 
   // Expense form
   const [showForm, setShowForm] = useState(false);
@@ -221,6 +223,31 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
     }
   };
 
+  const handleCopyPublicLink = () => {
+    const url = `${window.location.origin}/view/${sheetId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
+
+  const handleTogglePermission = async (newValue: boolean) => {
+    if (!sheet?.groupId?._id) return;
+    setUpdatingPermission(true);
+    try {
+      const res = await fetch(`/api/groups/${sheet.groupId._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowPreviousMonthsViewer: newValue }),
+      });
+      if (!res.ok) throw new Error('Failed to update viewer permission');
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update permission');
+    } finally {
+      setUpdatingPermission(false);
+    }
+  };
+
   if (loading || !currentUser || fetching) {
     return <div className="loading-screen"><p className="loading-text">Loading monthly sheet...</p></div>;
   }
@@ -277,6 +304,13 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
           </p>
         </div>
         <div className="page-header-actions">
+          <button
+            onClick={handleCopyPublicLink}
+            className="btn btn-secondary flex items-center gap-1.5"
+            title="Copy Public Viewer Link for this sheet"
+          >
+            {copiedLink ? '✓ Link Copied!' : '📋 Copy Viewer Link'}
+          </button>
           {canInputExpenses && (
             <button
               onClick={() => { setShowForm(!showForm); setSaveSuccess(''); }}
@@ -288,6 +322,37 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
           <Link href={`/groups/${groupId}`} className="btn btn-secondary">← Back</Link>
         </div>
       </div>
+
+      {/* Admin Settings bar inside Sheet View */}
+      {canInputExpenses && sheet?.groupId && (
+        <div className="glass-panel mb-6 p-3 px-4 flex flex-wrap items-center justify-between gap-3 border-l-4 border-purple-500">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-white">🌐 Viewer Setting:</span>
+            <span className="text-xs text-zinc-400">
+              {sheet.groupId.allowPreviousMonthsViewer
+                ? 'Visitors can view previous months via dropdown.'
+                : 'Visitors can only view this month.'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-300 font-medium">Previous Months Access:</span>
+            <button
+              onClick={() => handleTogglePermission(!sheet.groupId.allowPreviousMonthsViewer)}
+              disabled={updatingPermission}
+              className="btn btn-sm"
+              style={{
+                backgroundColor: sheet.groupId.allowPreviousMonthsViewer ? '#10b981' : '#3f3f46',
+                borderColor: sheet.groupId.allowPreviousMonthsViewer ? '#10b981' : '#3f3f46',
+                color: '#fff',
+                fontSize: '11px',
+                padding: '0.25rem 0.75rem',
+              }}
+            >
+              {updatingPermission ? 'Updating...' : sheet.groupId.allowPreviousMonthsViewer ? 'ENABLED (ON)' : 'DISABLED (OFF)'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Role notice */}
       {!canInputExpenses && (
