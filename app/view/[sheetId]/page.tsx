@@ -201,11 +201,6 @@ export default function PublicSheetView({ params }: { params: Promise<{ sheetId:
             <h2 className="text-xl font-extrabold text-white">Member Expense Breakdown</h2>
             <p className="text-xs text-zinc-400 mt-0.5">Paid: {paidCount} / {entries.length} Members</p>
           </div>
-          
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
-            <span className="text-xs text-yellow-300 uppercase font-semibold tracking-wider">Total Members:</span>
-            <span className="text-2xl font-black text-yellow-400">{entries.length}</span>
-          </div>
         </div>
 
         <div className="table-container" style={{ overflowX: 'auto', width: '100%' }}>
