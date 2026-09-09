@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { fetchWithRetry } from '@/lib/apiClient';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#a855f7'];
 
@@ -49,7 +50,7 @@ export default function PublicSheetView({ params }: { params: Promise<{ sheetId:
     try {
       setLoading(true);
       setError('');
-      const res = await fetch(`/api/public/sheet/${targetId}`);
+      const res = await fetchWithRetry(`/api/public/sheet/${targetId}`, { cache: 'no-store' });
       if (!res.ok) {
         if (res.status === 404) throw new Error('Sheet not found');
         throw new Error('Failed to load sheet details');
@@ -94,9 +95,14 @@ export default function PublicSheetView({ params }: { params: Promise<{ sheetId:
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold mb-2">Sheet Not Available</h2>
           <p className="text-zinc-400 mb-6">{error || 'This monthly sheet does not exist or has been removed.'}</p>
-          <Link href="/login" className="btn btn-primary">
-            Go to Login
-          </Link>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <button onClick={() => loadData(sheetId)} className="btn btn-secondary">
+              🔄 Try Again
+            </button>
+            <Link href="/login" className="btn btn-primary">
+              Go to Login
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import connectDB from '@/lib/db';
 import MonthlySheet from '@/models/MonthlySheet';
 import ExpenseEntry from '@/models/ExpenseEntry';
@@ -7,7 +10,8 @@ import mongoose from 'mongoose';
 export async function GET(request, { params }) {
   try {
     await connectDB();
-    const { sheetId } = await params;
+    const rawParams = await params;
+    const sheetId = (rawParams?.sheetId || '').trim();
 
     if (!sheetId || !mongoose.Types.ObjectId.isValid(sheetId)) {
       return Response.json({ error: 'Sheet not found' }, { status: 404 });
