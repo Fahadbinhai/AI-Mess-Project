@@ -6,6 +6,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { fetchWithRetry } from '@/lib/apiClient';
 
+import LoadingSpinner from '@/components/LoadingSpinner';
+
 export default function Dashboard() {
   const { currentUser, loading } = useAuth() as any;
   const router = useRouter();
@@ -18,15 +20,14 @@ export default function Dashboard() {
   }, [currentUser, loading, router]);
 
   useEffect(() => {
-    if (!currentUser) return;
     async function loadGroups() {
+      if (!currentUser) return;
       try {
+        setFetching(true);
         const res = await fetchWithRetry(`/api/groups?userId=${currentUser._id}`);
-        if (!res.ok) throw new Error('Failed to load groups');
-        const data = await res.json();
-        setGroups(data);
+        if (res.ok) setGroups(await res.json());
       } catch (err: any) {
-        setError(err.message || 'Failed to fetch your groups');
+        setError(err.message);
       } finally {
         setFetching(false);
       }
@@ -35,7 +36,7 @@ export default function Dashboard() {
   }, [currentUser]);
 
   if (loading || !currentUser) {
-    return <div className="loading-screen"><p className="loading-text">Loading your profile...</p></div>;
+    return <LoadingSpinner message="Loading your profile..." />;
   }
 
   const isSystemAdmin = currentUser.role === 'admin';

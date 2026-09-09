@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { fetchWithRetry } from '@/lib/apiClient';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminPanel() {
   const { currentUser, loading, refreshUser } = useAuth() as any;
@@ -99,7 +100,7 @@ export default function AdminPanel() {
   };
 
   if (loading || !currentUser || currentUser.role !== 'admin') {
-    return <div className="loading-screen"><p className="loading-text">Verifying admin credentials...</p></div>;
+    return <LoadingSpinner message="Verifying admin credentials..." />;
   }
 
   const admins = users.filter(u => u.role === 'admin');

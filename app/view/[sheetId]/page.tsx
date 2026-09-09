@@ -4,6 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#a855f7'];
 
@@ -83,11 +84,7 @@ export default function PublicSheetView({ params }: { params: Promise<{ sheetId:
   };
 
   if (loading) {
-    return (
-      <div className="loading-screen" style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <p className="loading-text" style={{ fontSize: '1.25rem' }}>Loading Public Sheet View...</p>
-      </div>
-    );
+    return <LoadingSpinner message="Loading Public Sheet View..." />;
   }
 
   if (error || !data) {

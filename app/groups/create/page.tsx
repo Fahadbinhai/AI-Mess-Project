@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { fetchWithRetry } from '@/lib/apiClient';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface User {
   _id: string;
@@ -106,11 +107,7 @@ export default function CreateGroup() {
   };
 
   if (loading || !currentUser) {
-    return (
-      <div className="loading-screen">
-        <p className="loading-text">Loading details...</p>
-      </div>
-    );
+    return <LoadingSpinner message="Loading group details..." />;
   }
 
   return (

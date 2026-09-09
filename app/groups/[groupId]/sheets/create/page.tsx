@@ -4,6 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { fetchWithRetry } from '@/lib/apiClient';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function CreateSheet({ params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = use(params);
@@ -47,7 +48,7 @@ export default function CreateSheet({ params }: { params: Promise<{ groupId: str
   };
 
   if (loading || !currentUser) {
-    return <div className="loading-screen"><p className="loading-text">Loading details...</p></div>;
+    return <LoadingSpinner message="Loading sheet creation..." />;
   }
 
   return (

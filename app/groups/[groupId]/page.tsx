@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { fetchWithRetry } from '@/lib/apiClient';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const COLORS = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#a855f7'];
 
@@ -162,7 +163,7 @@ export default function GroupDashboard({ params }: { params: Promise<{ groupId: 
   };
 
   if (loading || !currentUser || fetching) {
-    return <div className="loading-screen"><p className="loading-text">Loading group dashboard...</p></div>;
+    return <LoadingSpinner message="Loading group dashboard..." />;
   }
 
   if (error || !group) {

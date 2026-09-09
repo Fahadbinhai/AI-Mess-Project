@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function LoginPage() {
   const { login, currentUser, loading } = useAuth() as any;
@@ -31,7 +32,7 @@ export default function LoginPage() {
   };
 
   if (loading || currentUser) {
-    return <div className="loading-screen"><p className="loading-text">Loading...</p></div>;
+    return <LoadingSpinner message="Authenticating..." />;
   }
 
   return (
