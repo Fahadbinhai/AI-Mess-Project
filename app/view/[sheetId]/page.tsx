@@ -234,7 +234,13 @@ export default function PublicSheetView({ params }: { params: Promise<{ sheetId:
                 </tr>
               ) : (
                 entries.map((entry: ExpenseEntry) => (
-                  <tr key={entry._id}>
+                  <tr
+                    key={entry._id}
+                    style={{
+                      backgroundColor: entry.isPaid ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                      transition: 'background-color 0.2s ease',
+                    }}
+                  >
                     <td className="font-semibold text-white">
                       {entry.userId?.name || 'Unknown User'}
                     </td>

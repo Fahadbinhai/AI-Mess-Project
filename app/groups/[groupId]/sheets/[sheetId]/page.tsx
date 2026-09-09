@@ -515,7 +515,13 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
                       : entry.totalWithDue;
 
                     return (
-                      <tr key={entry._id}>
+                      <tr
+                        key={entry._id}
+                        style={{
+                          backgroundColor: entry.isPaid ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                          transition: 'background-color 0.2s ease',
+                        }}
+                      >
                         <td>
                           <div className="font-semibold text-white">{entry.userId?.name}</div>
                           <div className="text-xs font-mono text-zinc-500">#{entry.userId?.userId}</div>
