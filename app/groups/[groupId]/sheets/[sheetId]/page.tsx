@@ -4,7 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { fetchWithRetry } from '@/lib/apiClient';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -326,7 +326,7 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
 
       {/* Admin Settings bar inside Sheet View */}
       {canInputExpenses && sheet?.groupId && (
-        <div className="glass-panel mb-6 p-3 px-4 flex flex-wrap items-center justify-between gap-3 border-l-4 border-purple-500">
+        <div className="glass-panel p-3 px-4 flex flex-wrap items-center justify-between gap-3 border-l-4 border-purple-500" style={{ marginBottom: '1.75rem' }}>
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-white">🌐 Viewer Setting:</span>
             <span className="text-xs text-zinc-400">
@@ -357,7 +357,7 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
 
       {/* Role notice */}
       {!canInputExpenses && (
-        <div className="role-notice role-notice-viewer">
+        <div className="role-notice role-notice-viewer" style={{ marginBottom: '1.75rem' }}>
           <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -366,12 +366,12 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
         </div>
       )}
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {saveSuccess && <div className="alert alert-success">{saveSuccess}</div>}
+      {error && <div className="alert alert-error" style={{ marginBottom: '1.75rem' }}>{error}</div>}
+      {saveSuccess && <div className="alert alert-success" style={{ marginBottom: '1.75rem' }}>{saveSuccess}</div>}
 
       {/* Expense Input Form */}
       {showForm && canInputExpenses && (
-        <div className="glass-panel mb-6" style={{ border: '1px solid rgba(139,92,246,0.25)' }}>
+        <div className="glass-panel" style={{ border: '1px solid rgba(139,92,246,0.25)', marginBottom: '1.75rem' }}>
           <h2 className="text-base font-bold text-white mb-1">Input Member Expenses</h2>
           <p className="text-xs text-zinc-400 mb-5">Select a member and enter their monthly expense breakdown.</p>
 
@@ -453,7 +453,7 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
       )}
 
       {/* Expense Table */}
-      <section className="glass-panel mb-6">
+      <section className="glass-panel" style={{ marginBottom: '1.75rem' }}>
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h2 className="text-base font-bold text-white">Expense Ledger Table</h2>
           {entries.length > 0 && (
@@ -750,49 +750,96 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
         </div>
       </section>
 
-      {/* Donut Chart */}
+      {/* Graph Chart */}
       {chartData.length > 0 && (
-        <section className="glass-panel">
-          <h2 className="text-base font-bold text-white mb-1">Monthly Expense Distribution</h2>
-          <p className="text-xs text-zinc-400 mb-5">Visual breakdown of expense categories for {sheet?.month} {sheet?.year}</p>
+        <section className="glass-panel" style={{ marginBottom: '1.75rem' }}>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div>
+              <h2 className="text-base font-bold text-white mb-1">Monthly Expense Analytics</h2>
+              <p className="text-xs text-zinc-400">Visual comparison graph of expense categories for {sheet?.month} {sheet?.year}</p>
+            </div>
+          </div>
 
-          <div className="two-col-grid items-center">
-            <div className="relative" style={{ height: '280px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={chartData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={3} dataKey="value">
-                    {chartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
-                    formatter={(val: any) => [`৳${Number(val).toLocaleString()}`, '']}
-                  />
-                  <Legend iconSize={10} wrapperStyle={{ fontSize: '12px', color: '#a1a1aa' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ marginBottom: '40px' }}>
-                <span className="text-2xl font-black text-white">৳{totals.totalWithoutDue.toLocaleString()}</span>
-                <span className="text-xs text-zinc-400">Base Total</span>
+          <div className="two-col-grid items-stretch gap-6">
+            {/* Bar Graph */}
+            <div className="bg-zinc-950/70 rounded-2xl border border-zinc-800/80 flex flex-col justify-between" style={{ padding: '1.5rem 1.75rem', minHeight: '380px' }}>
+              <div className="flex items-center justify-between flex-wrap gap-2" style={{ marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Category Expenses (৳)</span>
+                <span className="text-xs text-purple-300 font-bold bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full shadow-sm">
+                  Base Total: ৳{totals.totalWithoutDue.toLocaleString()}
+                </span>
+              </div>
+              <div className="w-full flex-1" style={{ height: '290px', minHeight: '280px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 15, left: 15, bottom: 45 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      tickLine={false}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
+                      interval={0}
+                      angle={-25}
+                      textAnchor="end"
+                      tick={{ fill: '#f4f4f5', fontSize: 13, fontWeight: 600 }}
+                      height={50}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => `৳${v}`}
+                      tick={{ fill: '#f4f4f5', fontSize: 12, fontWeight: 600 }}
+                      width={65}
+                    />
+                    <Tooltip
+                      content={({ active, payload, label }: any) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-zinc-950/95 border border-purple-500/60 rounded-xl p-3 shadow-2xl backdrop-blur-md" style={{ background: 'rgba(9, 9, 11, 0.95)', border: '1px solid rgba(139, 92, 246, 0.6)', padding: '10px 14px', borderRadius: '12px' }}>
+                              <p className="text-white font-extrabold text-base mb-1" style={{ color: '#ffffff', fontWeight: '800', fontSize: '15px', marginBottom: '4px', margin: 0 }}>
+                                {label}
+                              </p>
+                              <p className="text-purple-300 font-bold text-sm" style={{ color: '#c4b5fd', fontWeight: '700', fontSize: '14px', margin: 0 }}>
+                                Expense : <span className="text-white font-black text-base" style={{ color: '#ffffff', fontWeight: '900', fontSize: '15px' }}>৳{Number(payload[0].value).toLocaleString()}</span>
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                    />
+                    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                      {chartData.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 bg-zinc-950/50 rounded-xl p-4 border border-zinc-800">
+            {/* Spending Breakdown Table */}
+            <div className="flex flex-col gap-3 bg-zinc-950/70 rounded-2xl border border-zinc-800/80" style={{ padding: '1.25rem 1.5rem' }}>
               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Spending Breakdown</h3>
-              {chartData.map((item, i) => {
-                const pct = totals.totalWithoutDue > 0 ? ((item.value / totals.totalWithoutDue) * 100).toFixed(1) : '0';
-                return (
-                  <div key={item.name} className="flex justify-between items-center text-xs border-b border-zinc-900 pb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                      <span className="text-zinc-300">{item.name}</span>
+              <div className="flex flex-col gap-1">
+                {chartData.map((item, i) => {
+                  const pct = totals.totalWithoutDue > 0 ? ((item.value / totals.totalWithoutDue) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={item.name} className="flex justify-between items-center text-xs border-b border-zinc-800/50 py-2 gap-2 flex-wrap sm:flex-nowrap">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                        <span className="text-zinc-200 font-medium truncate">{item.name}</span>
+                      </div>
+                      <span className="text-white font-semibold whitespace-nowrap ml-auto sm:ml-0">
+                        ৳{item.value.toLocaleString()} <span className="text-zinc-400 font-normal text-[11px]">({pct}%)</span>
+                      </span>
                     </div>
-                    <span className="text-white font-semibold">৳{item.value.toLocaleString()} <span className="text-zinc-500 font-normal">({pct}%)</span></span>
-                  </div>
-                );
-              })}
-              <div className="flex justify-between items-center text-sm pt-1.5 font-bold">
-                <span className="text-zinc-300">Total (With Due)</span>
-                <span className="text-purple-400">৳{totals.totalWithDue.toLocaleString()}</span>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between items-center text-sm pt-3 mt-auto border-t border-zinc-800 font-bold flex-wrap gap-2">
+                <span className="text-zinc-200">Total (With Due)</span>
+                <span className="text-purple-400 text-base">৳{totals.totalWithDue.toLocaleString()}</span>
               </div>
             </div>
           </div>
