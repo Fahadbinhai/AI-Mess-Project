@@ -49,6 +49,14 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
   const [error, setError] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const [updatingPermission, setUpdatingPermission] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Expense form
   const [showForm, setShowForm] = useState(false);
@@ -762,33 +770,49 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
 
           <div className="two-col-grid items-stretch gap-6">
             {/* Bar Graph */}
-            <div className="bg-zinc-950/70 rounded-2xl border border-zinc-800/80 flex flex-col justify-between" style={{ padding: '1.5rem 1.75rem', minHeight: '380px' }}>
-              <div className="flex items-center justify-between flex-wrap gap-2" style={{ marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div
+              className="bg-zinc-950/70 rounded-2xl border border-zinc-800/80 flex flex-col justify-between"
+              style={{
+                padding: isMobile ? '0.75rem 0.5rem' : '1.5rem 1.75rem',
+                minHeight: isMobile ? '320px' : '380px'
+              }}
+            >
+              <div
+                className="flex items-center justify-between flex-wrap gap-2"
+                style={{
+                  marginBottom: isMobile ? '0.75rem' : '1.25rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '1px solid rgba(255,255,255,0.06)'
+                }}
+              >
                 <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Category Expenses (৳)</span>
-                <span className="text-xs text-purple-300 font-bold bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full shadow-sm">
+                <span className="text-[11px] sm:text-xs text-purple-300 font-bold bg-purple-950/80 border border-purple-800/60 px-2.5 py-1 rounded-full shadow-sm">
                   Base Total: ৳{totals.totalWithoutDue.toLocaleString()}
                 </span>
               </div>
-              <div className="w-full flex-1" style={{ height: '290px', minHeight: '280px' }}>
+              <div className="w-full flex-1" style={{ height: isMobile ? '240px' : '290px', minHeight: '220px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 20, right: 15, left: 15, bottom: 45 }}>
+                  <BarChart
+                    data={chartData}
+                    margin={isMobile ? { top: 15, right: 2, left: -25, bottom: 45 } : { top: 20, right: 15, left: 15, bottom: 45 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
                     <XAxis
                       dataKey="name"
                       tickLine={false}
                       axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
                       interval={0}
-                      angle={-25}
+                      angle={isMobile ? -35 : -25}
                       textAnchor="end"
-                      tick={{ fill: '#f4f4f5', fontSize: 13, fontWeight: 600 }}
-                      height={50}
+                      tick={{ fill: '#f4f4f5', fontSize: isMobile ? 10 : 13, fontWeight: 600 }}
+                      height={isMobile ? 55 : 50}
                     />
                     <YAxis
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(v) => `৳${v}`}
-                      tick={{ fill: '#f4f4f5', fontSize: 12, fontWeight: 600 }}
-                      width={65}
+                      tick={{ fill: '#f4f4f5', fontSize: isMobile ? 10 : 12, fontWeight: 600 }}
+                      width={isMobile ? 45 : 65}
                     />
                     <Tooltip
                       content={({ active, payload, label }: any) => {
@@ -808,7 +832,7 @@ export default function SheetDetail({ params }: { params: Promise<{ groupId: str
                       }}
                       cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                     />
-                    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                    <Bar dataKey="value" radius={isMobile ? [4, 4, 0, 0] : [8, 8, 0, 0]}>
                       {chartData.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
