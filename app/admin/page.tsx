@@ -130,7 +130,7 @@ export default function AdminPanel() {
       {success && <div className="alert alert-success">{success}</div>}
 
       {/* Search */}
-      <div className="glass-panel mb-6">
+      <div className="glass-panel" style={{ marginBottom: '15px' }}>
         <form onSubmit={handleSearch} className="search-row">
           <input
             type="text"
