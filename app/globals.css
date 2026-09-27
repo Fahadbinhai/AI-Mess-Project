@@ -209,7 +209,8 @@ a {
 .page-container-md {
   flex: 1;
   width: 100%;
-  max-width: 900px;
+  /* max-width: 900px; */
+  max-width: 1350px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
@@ -622,8 +623,13 @@ select.form-control {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---- GRID LAYOUTS ---- */
@@ -986,7 +992,7 @@ select.form-control {
   }
 
   /* Stat cards in admin panel */
-  .glass-panel .flex {
+  .glass-panel > .flex {
     flex-wrap: wrap;
   }
 

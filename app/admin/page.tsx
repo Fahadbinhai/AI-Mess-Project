@@ -189,11 +189,11 @@ export default function AdminPanel() {
                       <span className="font-mono text-purple-300 font-bold">{user.userId}</span>
                     </td>
                     <td>
-                      <div className="flex items-center gap-2">
-                        <div className="member-avatar" style={{ height: '28px', width: '28px', fontSize: '0.75rem' }}>
+                      <div className="flex items-center gap-2 whitespace-nowrap flex-nowrap" style={{ flexWrap: 'nowrap' }}>
+                        <div className="member-avatar shrink-0" style={{ height: '28px', width: '28px', fontSize: '0.75rem' }}>
                           {user.name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-semibold text-white">
+                        <span className="font-semibold text-white whitespace-nowrap shrink-0">
                           {user.name}
                           {user._id === currentUser._id && (
                             <span className="ml-1 text-xs text-purple-400 font-normal">(You)</span>
